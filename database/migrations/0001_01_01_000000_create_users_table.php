@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->enum('role', ['user', 'agent'])->default('user');
-            $table->string('agent_code')->nullable();
             $table->timestamps();
         });
 
