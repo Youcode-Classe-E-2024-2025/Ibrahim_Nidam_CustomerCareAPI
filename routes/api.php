@@ -13,4 +13,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('tickets', TicketController::class)
         ->where(['ticket' => '[0-9]+']);  
 
+    Route::get('/tickets/available', [TicketController::class, 'availableTickets']);
+    
 });
