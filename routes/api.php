@@ -14,5 +14,6 @@ Route::middleware('auth:sanctum')->group(function () {
         ->where(['ticket' => '[0-9]+']);  
 
     Route::get('/tickets/available', [TicketController::class, 'availableTickets']);
-    
+    Route::post('/tickets/{ticket}/claim', [TicketController::class, 'claim'])
+        ->where('ticket', '[0-9]+');
 });
