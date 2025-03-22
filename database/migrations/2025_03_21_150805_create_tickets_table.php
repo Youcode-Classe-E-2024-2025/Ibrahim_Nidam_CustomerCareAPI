@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('description');
             $table->foreignId('customer_id')->constrained('users');
             $table->foreignId('assigned_agent_id')->nullable()->constrained('users');
-            $table->enum('status', ['open', 'pending', 'resolved'])->default('open');
+            $table->enum('status', ['open', 'in_progress', 'resolved'])->default('open');
             $table->timestamps();
         });
     }
