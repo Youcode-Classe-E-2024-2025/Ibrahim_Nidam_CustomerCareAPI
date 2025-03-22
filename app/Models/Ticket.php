@@ -17,6 +17,7 @@ class Ticket extends Model
 
     public function assignedAgent()
     {
-        return $this->belongsTo(User::class, 'assigned_agent_id');
+        return $this->belongsTo(User::class, 'assigned_agent_id')
+            ->select(['id', 'name', 'email']);
     }
 }
