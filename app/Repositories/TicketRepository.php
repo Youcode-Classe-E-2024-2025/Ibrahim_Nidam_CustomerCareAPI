@@ -46,4 +46,29 @@ class TicketRepository
     {
         return $this->ticketModel->where('assigned_agent_id', $agentId)->get();
     }
+
+    public function getOpenTickets()
+    {
+        return $this->ticketModel
+            ->where('status', 'open')
+            ->whereNull('assigned_agent_id')
+            ->get();
+    }
+
+    public function assignAgent(int $ticketId, int $agentId)
+    {
+        $ticket = $this->findById($ticketId);
+        $ticket->update([
+            'assigned_agent_id' => $agentId,
+            'status' => 'in_progress'
+        ]);
+        return $ticket;
+    }
+
+    public function getWithAgent(int $id)
+    {
+        return $this->ticketModel
+            ->with('assignedAgent')
+            ->findOrFail($id);
+    }
 }
