@@ -5,7 +5,9 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ticket\StoreTicketRequest;
 use App\Http\Requests\Ticket\UpdateTicketRequest;
+use App\Models\Ticket;
 use App\Services\TicketService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,9 +24,22 @@ use Illuminate\Support\Facades\Auth;
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time")
  * )
+ * 
+ * @OA\Schema(
+ *     schema="TicketWithAgent",
+ *     allOf={@OA\Schema(ref="#/components/schemas/Ticket")},
+ *     @OA\Property(
+ *         property="assigned_agent",
+ *         type="object",
+ *         @OA\Property(property="id", type="integer"),
+ *         @OA\Property(property="name", type="string"),
+ *         @OA\Property(property="email", type="string")
+ *     )
+ * )
  */
 class TicketController extends Controller
 {
+    use AuthorizesRequests;
     protected $ticketService;
 
     public function __construct(TicketService $ticketService)
@@ -73,13 +88,17 @@ class TicketController extends Controller
      *     tags={"Tickets"},
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(name="id", in="path", required=true),
-     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(ref="#/components/schemas/TicketWithAgent")
+     *     ),
      * )
      */
-    public function show(int $id): JsonResponse
+    public function show(Ticket $ticket): JsonResponse 
     {
-        $ticket = $this->ticketService->getTicket($id, Auth::user());
-        return response()->json($ticket);
+        $ticketWithAgent = $this->ticketService->getTicketWithAgent($ticket);
+        return response()->json($ticketWithAgent);
     }
 
     /**
@@ -117,4 +136,50 @@ class TicketController extends Controller
         $this->ticketService->deleteTicket($id, Auth::user());
         return response()->json(['message' => 'Ticket deleted successfully']);
     }
+
+    /**
+     * @OA\Get(
+     *     path="/api/tickets/available",
+     *     summary="Get available open tickets",
+     *     tags={"Tickets"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response=200, description="Success"),
+     * )
+     */
+    public function availableTickets(): JsonResponse
+    {
+        try {
+            $this->authorize('viewAvailableTickets', Ticket::class);
+            
+            $tickets = $this->ticketService->getAvailableTickets();
+            return response()->json($tickets);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch tickets',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/tickets/{id}/claim",
+     *     summary="Claim a ticket",
+     *     tags={"Tickets"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true),
+     *     @OA\Response(response=200, description="Ticket claimed"),
+     * )
+     */
+    public function claim(Ticket $ticket): JsonResponse
+    {
+        // Pass the Ticket model directly
+        $updatedTicket = $this->ticketService->claimTicket($ticket, Auth::user());
+        return response()->json([
+            'message' => 'Ticket claimed successfully',
+            'ticket' => $updatedTicket
+        ]);
+    }
+
 }
