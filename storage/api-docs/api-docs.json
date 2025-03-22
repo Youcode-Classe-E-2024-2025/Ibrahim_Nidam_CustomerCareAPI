@@ -222,7 +222,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successful operation"
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TicketWithAgent"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -289,6 +296,51 @@
                     }
                 ]
             }
+        },
+        "/api/tickets/available": {
+            "get": {
+                "tags": [
+                    "Tickets"
+                ],
+                "summary": "Get available open tickets",
+                "operationId": "ccf47a86fbe826dbe92fcb4e70d728cf",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tickets/{id}/claim": {
+            "post": {
+                "tags": [
+                    "Tickets"
+                ],
+                "summary": "Claim a ticket",
+                "operationId": "fce1290e2e5935473a654acb791ee0b4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ticket claimed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -329,6 +381,33 @@
                     }
                 },
                 "type": "object"
+            },
+            "TicketWithAgent": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Ticket"
+                    },
+                    {
+                        "properties": {
+                            "assigned_agent": {
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
             }
         },
         "securitySchemes": {
