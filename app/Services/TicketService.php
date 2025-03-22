@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Ticket;
 use App\Repositories\TicketRepository;
 use App\Models\User;
 
@@ -69,5 +70,29 @@ class TicketService
             return $this->ticketRepository->getAllForAgent($user->id);
         }
         return $this->ticketRepository->getAllForCustomer($user->id);
+    }
+
+    public function getAvailableTickets()
+    {
+        return $this->ticketRepository->getOpenTickets();
+    }
+
+    public function claimTicket(Ticket $ticket, User $agent)
+    {
+        if (!$agent->isAgent()) {
+            abort(403, 'Only agents can claim tickets');
+        }
+    
+        if ($ticket->status !== 'open' || $ticket->assigned_agent_id !== null) {
+            abort(409, 'Ticket is no longer available');
+        }
+    
+        // Use the ticket instance directly
+        return $this->ticketRepository->assignAgent($ticket->id, $agent->id);
+    }
+
+    public function getTicketWithAgent(Ticket $ticket)
+    {
+        return $this->ticketRepository->getWithAgent($ticket->id);
     }
 }
