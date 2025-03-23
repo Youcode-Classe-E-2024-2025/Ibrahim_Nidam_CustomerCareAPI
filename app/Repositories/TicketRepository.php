@@ -71,4 +71,35 @@ class TicketRepository
             ->with('assignedAgent')
             ->findOrFail($id);
     }
+
+    public function getWithResponses(int $id)
+    {
+        return $this->ticketModel
+            ->with(['responses', 'assignedAgent:id,name'])
+            ->findOrFail($id);
+    }
+
+    public function markAsResolved(int $id)
+    {
+        $ticket = $this->findById($id);
+        $ticket->update([
+            'status' => 'resolved',
+            'resolved_at' => now()
+        ]);
+        return $ticket;
+    }
+
+    public function addResponse(int $ticketId, array $data)
+    {
+        return Ticket::findOrFail($ticketId)
+            ->responses()
+            ->create($data);
+    }
+
+    public function getWithDetails(int $id)
+    {
+        return $this->ticketModel
+            ->with(['responses.agent', 'assignedAgent'])
+            ->findOrFail($id);
+    }
 }
