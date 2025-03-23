@@ -5,8 +5,10 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ticket\StoreTicketRequest;
 use App\Http\Requests\Ticket\UpdateTicketRequest;
+use App\Http\Requests\Response\StoreResponseRequest;
 use App\Models\Ticket;
 use App\Services\TicketService;
+use App\Services\ResponseService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -15,14 +17,8 @@ use Illuminate\Support\Facades\Auth;
  * @OA\Schema(
  *     schema="Ticket",
  *     type="object",
- *     @OA\Property(property="id", type="integer"),
  *     @OA\Property(property="subject", type="string"),
  *     @OA\Property(property="description", type="string"),
- *     @OA\Property(property="customer_id", type="integer"),
- *     @OA\Property(property="assigned_agent_id", type="integer", nullable=true),
- *     @OA\Property(property="status", type="string", enum={"open", "in_progress", "resolved"}),
- *     @OA\Property(property="created_at", type="string", format="date-time"),
- *     @OA\Property(property="updated_at", type="string", format="date-time")
  * )
  * 
  * @OA\Schema(
@@ -36,15 +32,20 @@ use Illuminate\Support\Facades\Auth;
  *         @OA\Property(property="email", type="string")
  *     )
  * )
+ *
  */
+
 class TicketController extends Controller
 {
     use AuthorizesRequests;
     protected $ticketService;
+    protected $responseService;
+    
 
-    public function __construct(TicketService $ticketService)
+    public function __construct(TicketService $ticketService, ResponseService $responseService)
     {
         $this->ticketService = $ticketService;
+        $this->responseService = $responseService;
     }
 
     /**
@@ -84,21 +85,21 @@ class TicketController extends Controller
     /**
      * @OA\Get(
      *     path="/api/tickets/{id}",
-     *     summary="Get a ticket",
+     *     summary="Get a ticket with responses",
      *     tags={"Tickets"},
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(name="id", in="path", required=true),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/TicketWithAgent")
+     *         @OA\JsonContent(ref="#/components/schemas/Ticket")
      *     ),
      * )
      */
-    public function show(Ticket $ticket): JsonResponse 
+    public function show(Ticket $ticket): JsonResponse
     {
-        $ticketWithAgent = $this->ticketService->getTicketWithAgent($ticket);
-        return response()->json($ticketWithAgent);
+        $ticketWithDetails = $this->ticketService->getTicketWithDetails($ticket);
+        return response()->json($ticketWithDetails);
     }
 
     /**
@@ -182,4 +183,22 @@ class TicketController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Patch(
+     *     path="/api/tickets/{id}/resolve",
+     *     summary="Mark ticket as resolved",
+     *     tags={"Tickets"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true),
+     *     @OA\Response(response=200, description="Ticket resolved"),
+     * )
+     */
+    public function resolve(Ticket $ticket): JsonResponse
+    {
+        $this->authorize('resolve', $ticket);
+        $resolvedTicket = $this->ticketService->resolveTicket($ticket);
+        return response()->json($resolvedTicket);
+    }
+
+    
 }
