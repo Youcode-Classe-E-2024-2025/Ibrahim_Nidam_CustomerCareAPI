@@ -160,6 +160,103 @@
                 ]
             }
         },
+        "/api/tickets/{id}/responses": {
+            "get": {
+                "tags": [
+                    "Responses"
+                ],
+                "summary": "Get all responses for a ticket",
+                "operationId": "74ee582396aeaa9ae6a3bf5271655bae",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Ticket ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of responses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ResponseWithDetails"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Unauthorized - Only ticket owner or assigned agent can view responses"
+                    },
+                    "404": {
+                        "description": "Ticket not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Responses"
+                ],
+                "summary": "Add a response to a ticket",
+                "operationId": "6823681c749737c1262cfb428b92277c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Ticket ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Response"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Response added",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWithDetails"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Unauthorized - Only assigned agents can respond"
+                    },
+                    "404": {
+                        "description": "Ticket not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/tickets": {
             "get": {
                 "tags": [
@@ -211,7 +308,7 @@
                 "tags": [
                     "Tickets"
                 ],
-                "summary": "Get a ticket",
+                "summary": "Get a ticket with responses",
                 "operationId": "7d9ae46a6f051e4bbab3955f0ee3aa1d",
                 "parameters": [
                     {
@@ -226,7 +323,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/TicketWithAgent"
+                                    "$ref": "#/components/schemas/Ticket"
                                 }
                             }
                         }
@@ -341,43 +438,43 @@
                     }
                 ]
             }
+        },
+        "/api/tickets/{id}/resolve": {
+            "patch": {
+                "tags": [
+                    "Tickets"
+                ],
+                "summary": "Mark ticket as resolved",
+                "operationId": "7ff41e1f8cc14f7636b74c599db6a466",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ticket resolved"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {
         "schemas": {
             "Ticket": {
                 "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
                     "subject": {
                         "type": "string"
                     },
                     "description": {
                         "type": "string"
-                    },
-                    "customer_id": {
-                        "type": "integer"
-                    },
-                    "assigned_agent_id": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "status": {
-                        "type": "string",
-                        "enum": [
-                            "open",
-                            "in_progress",
-                            "resolved"
-                        ]
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
                     }
                 },
                 "type": "object"
@@ -408,6 +505,64 @@
                         "type": "object"
                     }
                 ]
+            },
+            "Response": {
+                "properties": {
+                    "content": {
+                        "description": "The content of the response",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ResponseWithDetails": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Response"
+                    },
+                    {
+                        "properties": {
+                            "id": {
+                                "description": "Response ID",
+                                "type": "integer"
+                            },
+                            "ticket_id": {
+                                "description": "Associated ticket ID",
+                                "type": "integer"
+                            },
+                            "agent": {
+                                "description": "Agent who created the response",
+                                "properties": {
+                                    "id": {
+                                        "description": "Agent ID",
+                                        "type": "integer"
+                                    },
+                                    "name": {
+                                        "description": "Agent name",
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "description": "Agent email",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "created_at": {
+                                "description": "Creation timestamp",
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updated_at": {
+                                "description": "Last update timestamp",
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
             }
         },
         "securitySchemes": {
@@ -423,6 +578,10 @@
         {
             "name": "Authentication",
             "description": "Authentication"
+        },
+        {
+            "name": "Responses",
+            "description": "Responses"
         },
         {
             "name": "Tickets",
