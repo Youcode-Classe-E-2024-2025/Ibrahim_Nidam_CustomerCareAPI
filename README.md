@@ -12,7 +12,7 @@
 - **Backlog Link :** [View on Backlog](https://github.com/orgs/Youcode-Classe-E-2024-2025/projects/174)
 - **GitHub Repository Link :** [View on GitHub](https://github.com/Youcode-Classe-E-2024-2025/Ibrahim_Nidam_CustomerCareAPI.git)
 
-### Créé : 21/12/24
+### Créé : 19/03/25
 
 Le système actuel de gestion des élèves, des enseignants, des étudiants est fragmenté. Le but est de centraliser et d'automatiser les processus pour améliorer l'efficacité et la communication au sein de l'école.
 
