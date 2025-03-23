@@ -18,6 +18,8 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained('users');
             $table->foreignId('assigned_agent_id')->nullable()->constrained('users');
             $table->enum('status', ['open', 'in_progress', 'resolved'])->default('open');
+            $table->timestamp('claimed_at')->nullable();
+            $table->timestamp('resolved_at')->nullable();
             $table->timestamps();
         });
     }
