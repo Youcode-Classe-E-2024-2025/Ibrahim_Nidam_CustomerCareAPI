@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ticket\StoreTicketRequest;
 use App\Http\Requests\Ticket\UpdateTicketRequest;
-use App\Http\Requests\Response\StoreResponseRequest;
 use App\Models\Ticket;
 use App\Services\TicketService;
 use App\Services\ResponseService;
@@ -175,7 +174,6 @@ class TicketController extends Controller
      */
     public function claim(Ticket $ticket): JsonResponse
     {
-        // Pass the Ticket model directly
         $updatedTicket = $this->ticketService->claimTicket($ticket, Auth::user());
         return response()->json([
             'message' => 'Ticket claimed successfully',
@@ -199,6 +197,4 @@ class TicketController extends Controller
         $resolvedTicket = $this->ticketService->resolveTicket($ticket);
         return response()->json($resolvedTicket);
     }
-
-    
 }
